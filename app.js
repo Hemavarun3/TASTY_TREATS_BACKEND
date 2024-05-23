@@ -7,7 +7,6 @@ import payment from './Controllers/paymentController.js';
 
 /* Building a server */
 const app=express()
-
 app.use(cors());
 
 /* Used to convert json string if present in req.body to javascript object */
