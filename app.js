@@ -4,6 +4,8 @@ import userRouter from './Routes/userRoutes.js'
 import cors from 'cors';
 import productRouter from './Routes/productRoutes.js';
 import payment from './Controllers/paymentController.js';
+import orderRoutes from './Routes/orderRoutes.js';
+
 
 /* Building a server */
 const app=express()
@@ -25,9 +27,13 @@ app.listen(process.env.PORT || 8000,()=>{
 app.get('/',(req,res,next)=>{
     res.send('Hello world');
 })
+
+
+
 app.use('/users',userRouter);
 app.use('/products',productRouter);
-app.use('/create-checkout-session',payment);
+app.use('/orders',orderRoutes);
+app.post('/payment',payment);
 
 
 export default app;

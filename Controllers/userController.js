@@ -1,25 +1,35 @@
 import asyncHandler from '../Utills/asyncHandler.js';
 import { userModel } from '../Models/usermodel.js';
-import ApiError from '../Utills/ApiError.js'
-import  ApiResponse  from '../Utills/ApiResponse.js';
+import { orderModel } from '../Models/ordermodel.js';
+
+
+
 
 
 const signup=asyncHandler(async (req,res,next)=>{
     const user=req.body;
-    if(!user.firstName || !user.lastName || !user.email || !user.password || !user.confirmPassword )
+    if(!user.firstName || !user.lastName || !user.email || !user.password || !user.confirmPassword || !user.address )
     {
-        res.status(400).send('Insufficient details');
+        return res.status(400).send('Insufficient details');
     }
+    
     const user_exist=await userModel.findOne(user);
     if(user_exist)
     {
-        res.status(400).send('User already Exist');
+       return  res.status(400).send('User already Exist');
     }
     if(user.password!=user.confirmPassword)
     {
-        res.status(400).send('Password and ConfirmPassword doesnot march');
+        return res.status(400).send('Password and ConfirmPassword doesnot march');
     }
-    const save_status=await userModel.create(user);
+    const final_user={
+        name : `${user.firstName} ${user.lastName}`,
+        email : user.email,
+        address : user.address,
+        password : user.password
+
+    }
+    const save_status=await userModel.create(final_user);
     res.status(200).send({message : 'User Registered Succesfully',alert : true});
 });
 
@@ -43,7 +53,7 @@ const login=asyncHandler(async (req,res,next)=>{
             res.status(401).send({data : 'Invalid user Credentials',alert : false});
         }
         const {accessToken,refreshToken}=await generateAccessRefreshToken(user._id);
-        const loggedInUser = await userModel.findById(user._id).select("email _id");
+        const loggedInUser = await userModel.findById(user._id).select("-password");
         const options ={
             httpOnly :true,
             secure :true
@@ -102,5 +112,24 @@ const logout =asyncHandler(async(req,res,next) =>{
     }
 
 })
+const getuserOrders = async (req,res,next) =>{
+    try {
+        const user=req.body;
+        const data= await orderModel.find({
+            userid:user.userid
+        });
+        let result=[];
+        data.map((curr) => {
+            result.push({
+                userid:curr.userid,
+                status : curr.status,
+                items : curr.items
+            })
+        })
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(401).send(error.message);
+    }
+}
 
-export {signup,login,logout};
+export {signup,login,logout,getuserOrders};

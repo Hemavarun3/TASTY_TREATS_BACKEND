@@ -2,11 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'
 const userSchema=mongoose.Schema({
-    firstName : {
-        type : String,
-        require : true
-    },
-    lastName :{
+    name : {
         type : String,
         require : true
     },
@@ -19,7 +15,7 @@ const userSchema=mongoose.Schema({
         type : String,
         require : true
     },
-    confirmPassword :{
+    address :{
         type : String,
         require : true
     },
