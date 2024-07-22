@@ -87,31 +87,33 @@ const generateAccessRefreshToken = async (userId) => {
         res.status(401).send({data : `Something went wrong while generating tokens`,alert : false});
     }
 }
-const logout =asyncHandler(async(req,res,next) =>{
+const logout = asyncHandler(async (req, res, next) => {
     try {
-        await userModel.findByIdAndUpdate(req.user._id,
-            {
-                $set :{
-                    refreshToken : undefined
-                }
-            },
-            {
-                new :true
+        // Update the user document to remove the refresh token
+        await userModel.findByIdAndUpdate(req.body._id, {
+            $set: {
+                refreshToken: ""
             }
-        );
-        const options ={
-            httpOnly :true,
-            secure :true
-        }
-        return res.status(200)
-        .clearCookie("accessToken",options)
-        .clearCookie("refreshToken",options)
-        .send({data : `Logged out Successfully`,alert : false});
-    } catch (error) {
-        res.status(401).send({data : `${error.message}`,alert : false});
-    }
+        }, {
+            new: true
+        });
 
-})
+        // Define cookie options
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Set secure flag only in production
+            sameSite: 'None'
+        };
+
+        // Clear the cookies and send the response
+        res.status(200)
+            .clearCookie("accessToken", options)
+            .clearCookie("refreshToken", options)
+            .send({ data: "Logged out Successfully", alert: false });
+    } catch (error) {
+        res.status(401).send({ data: error.message, alert: false });
+    }
+});
 const getuserOrders = async (req,res,next) =>{
     try {
         const user=req.body;
@@ -131,5 +133,35 @@ const getuserOrders = async (req,res,next) =>{
         res.status(401).send(error.message);
     }
 }
+const newToken = async (req, res, next) => {
+    try {
+        const {refreshToken} = req.body;
+        console.log("Hello      ");
+        console.log(refreshToken);
+        if (!refreshToken) {
+            return res.status(400).send({ message: "Invalid Token", alert: false });
+        }
+        const decodedtoken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        if (!decodedtoken) {
+            return res.status(400).send({ message: "Unauthorised Request", alert: false });
+        }
+        const user = await userModel.findById(decodedtoken._id);
+        if (!user) {
+            return res.status(400).send({ message: "user doesn't exist", alert: false });
+        }
+        const newaccessToken = user.generateAccessToken();
+        return res.status(200)
+            .json(
+                {
+                    data: { newaccessToken, refreshToken },
+                    message: "Log in Successful",
+                    alert: true
+                }
+            )
+    } catch (error) {
+        return res.status(400).send({ message:`${error.message}`, alert: false });
+    }
 
-export {signup,login,logout,getuserOrders};
+}
+
+export {signup,login,logout,getuserOrders,newToken};
