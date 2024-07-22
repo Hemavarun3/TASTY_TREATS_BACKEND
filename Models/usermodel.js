@@ -21,6 +21,9 @@ const userSchema=mongoose.Schema({
     },
     refreshToken :{
         type : String
+    },
+    isAdmin :{
+        type : Boolean
     }
 },{timestamps : true});
 

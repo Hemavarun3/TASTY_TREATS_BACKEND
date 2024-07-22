@@ -26,8 +26,8 @@ const signup=asyncHandler(async (req,res,next)=>{
         name : `${user.firstName} ${user.lastName}`,
         email : user.email,
         address : user.address,
-        password : user.password
-
+        password : user.password,
+        isAdmin : user.isAdmin
     }
     const save_status=await userModel.create(final_user);
     res.status(200).send({message : 'User Registered Succesfully',alert : true});
